@@ -621,13 +621,13 @@ impl Filesystem for PassthroughFS {
 
         match fs::rename(&old_real, &new_real) {
             Ok(_) => {
-                // Update inode mapping
-                if let Some(inode) = self.path_to_inode.lock().unwrap().remove(&old_relative) {
-                    self.path_to_inode
-                        .lock()
-                        .unwrap()
-                        .insert(new_relative.clone(), inode);
-                    self.inode_to_path.lock().unwrap().insert(inode, new_relative);
+                // Update inode mapping - use a single lock scope to avoid deadlock
+                {
+                    let mut path_to_inode = self.path_to_inode.lock().unwrap();
+                    if let Some(inode) = path_to_inode.remove(&old_relative) {
+                        path_to_inode.insert(new_relative.clone(), inode);
+                        self.inode_to_path.lock().unwrap().insert(inode, new_relative);
+                    }
                 }
                 reply.ok();
             }
@@ -683,13 +683,13 @@ impl Filesystem for PassthroughFS {
 
         match fs::rename(&old_real, &new_real) {
             Ok(_) => {
-                // Update inode mapping
-                if let Some(inode) = self.path_to_inode.lock().unwrap().remove(&old_relative) {
-                    self.path_to_inode
-                        .lock()
-                        .unwrap()
-                        .insert(new_relative.clone(), inode);
-                    self.inode_to_path.lock().unwrap().insert(inode, new_relative);
+                // Update inode mapping - use a single lock scope to avoid deadlock
+                {
+                    let mut path_to_inode = self.path_to_inode.lock().unwrap();
+                    if let Some(inode) = path_to_inode.remove(&old_relative) {
+                        path_to_inode.insert(new_relative.clone(), inode);
+                        self.inode_to_path.lock().unwrap().insert(inode, new_relative);
+                    }
                 }
                 reply.ok();
             }

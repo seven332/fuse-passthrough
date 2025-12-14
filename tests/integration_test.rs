@@ -183,17 +183,33 @@ fn test_delete_file() {
     assert!(!source.join("to_delete.txt").exists(), "File still exists in source");
 }
 
-// Note: rename test is skipped on macOS due to macFUSE limitations with renamex_np
-// The FUSE rename operation works correctly on Linux
 #[test]
-#[ignore] // Skipped: macOS uses renamex_np which is not fully supported by macFUSE
+#[ignore] // Requires FUSE to be installed
 fn test_rename_file() {
-    // This test is skipped because macOS Finder and system calls use renamex_np
-    // which requires special handling in FUSE that is not yet fully implemented
-    // in the fuser library for macOS.
-    //
-    // The rename functionality works correctly on Linux systems.
-    println!("Test skipped on macOS due to renamex_np limitations");
+    let (source, mountpoint, _temp_dir) = setup_test_dirs();
+    
+    // Create a test file in source
+    let test_content = "Rename me!";
+    fs::write(source.join("original.txt"), test_content).expect("Failed to write test file");
+    
+    let guard = MountGuard::new(&source, &mountpoint);
+    assert!(guard.wait_for_mount(), "Failed to mount filesystem");
+    
+    // Rename through mountpoint
+    fs::rename(
+        mountpoint.join("original.txt"),
+        mountpoint.join("renamed.txt"),
+    ).expect("Failed to rename file");
+    
+    // Wait for sync
+    thread::sleep(Duration::from_millis(500));
+    
+    // Verify in source: old file should not exist, new file should exist with same content
+    assert!(!source.join("original.txt").exists(), "Original file still exists");
+    assert!(source.join("renamed.txt").exists(), "Renamed file does not exist");
+    
+    let content = fs::read_to_string(source.join("renamed.txt")).expect("Failed to read renamed file");
+    assert_eq!(content, test_content);
 }
 
 // Unit tests for PassthroughFS internals (don't require FUSE mount)
