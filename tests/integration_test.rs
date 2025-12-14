@@ -205,25 +205,3 @@ fn test_rename_file() {
     let content = fs::read_to_string(source.join("renamed.txt")).expect("Failed to read renamed file");
     assert_eq!(content, test_content);
 }
-
-// Unit tests for PassthroughFS internals (don't require FUSE mount)
-#[cfg(test)]
-mod unit_tests {
-    use std::path::PathBuf;
-
-    #[test]
-    fn test_path_join() {
-        let source = PathBuf::from("/tmp/source");
-        let relative = PathBuf::from("subdir/file.txt");
-        let result = source.join(&relative);
-        assert_eq!(result, PathBuf::from("/tmp/source/subdir/file.txt"));
-    }
-
-    #[test]
-    fn test_empty_path_join() {
-        let source = PathBuf::from("/tmp/source");
-        let relative = PathBuf::from("");
-        let result = source.join(&relative);
-        assert_eq!(result, PathBuf::from("/tmp/source"));
-    }
-}
