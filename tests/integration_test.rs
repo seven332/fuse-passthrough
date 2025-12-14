@@ -74,7 +74,6 @@ fn setup_test_dirs() -> (PathBuf, PathBuf, tempfile::TempDir) {
 }
 
 #[test]
-#[ignore] // Requires macFUSE to be installed
 fn test_read_file() {
     let (source, mountpoint, _temp_dir) = setup_test_dirs();
     
@@ -96,7 +95,6 @@ fn test_read_file() {
 }
 
 #[test]
-#[ignore] // Requires macFUSE to be installed
 fn test_write_file() {
     let (source, mountpoint, _temp_dir) = setup_test_dirs();
     
@@ -120,7 +118,6 @@ fn test_write_file() {
 }
 
 #[test]
-#[ignore] // Requires macFUSE to be installed
 fn test_list_directory() {
     let (source, mountpoint, _temp_dir) = setup_test_dirs();
     
@@ -145,7 +142,6 @@ fn test_list_directory() {
 }
 
 #[test]
-#[ignore] // Requires macFUSE to be installed
 fn test_create_directory() {
     let (source, mountpoint, _temp_dir) = setup_test_dirs();
     
@@ -163,7 +159,6 @@ fn test_create_directory() {
 }
 
 #[test]
-#[ignore] // Requires macFUSE to be installed
 fn test_delete_file() {
     let (source, mountpoint, _temp_dir) = setup_test_dirs();
     
@@ -184,7 +179,6 @@ fn test_delete_file() {
 }
 
 #[test]
-#[ignore] // Requires FUSE to be installed
 fn test_rename_file() {
     let (source, mountpoint, _temp_dir) = setup_test_dirs();
     
