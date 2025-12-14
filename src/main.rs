@@ -642,6 +642,64 @@ impl Filesystem for PassthroughFS {
         reply.statfs(0, 0, 0, 0, 0, 512, 255, 0);
     }
 
+    /// macOS only: Exchange two files atomically
+    #[cfg(target_os = "macos")]
+    fn exchange(
+        &mut self,
+        _req: &Request,
+        parent: u64,
+        name: &OsStr,
+        newparent: u64,
+        newname: &OsStr,
+        _options: u64,
+        reply: fuser::ReplyEmpty,
+    ) {
+        debug!(
+            "exchange: parent={}, name={:?}, newparent={}, newname={:?}",
+            parent, name, newparent, newname
+        );
+
+        // For non-atomic exchange, just do a rename
+        let parent_path = match self.get_path(parent) {
+            Some(p) => p,
+            None => {
+                reply.error(ENOENT);
+                return;
+            }
+        };
+
+        let newparent_path = match self.get_path(newparent) {
+            Some(p) => p,
+            None => {
+                reply.error(ENOENT);
+                return;
+            }
+        };
+
+        let old_relative = parent_path.join(name);
+        let new_relative = newparent_path.join(newname);
+        let old_real = self.real_path(&old_relative);
+        let new_real = self.real_path(&new_relative);
+
+        match fs::rename(&old_real, &new_real) {
+            Ok(_) => {
+                // Update inode mapping
+                if let Some(inode) = self.path_to_inode.lock().unwrap().remove(&old_relative) {
+                    self.path_to_inode
+                        .lock()
+                        .unwrap()
+                        .insert(new_relative.clone(), inode);
+                    self.inode_to_path.lock().unwrap().insert(inode, new_relative);
+                }
+                reply.ok();
+            }
+            Err(e) => {
+                error!("exchange error: {:?}", e);
+                reply.error(ENOENT);
+            }
+        }
+    }
+
     fn access(&mut self, _req: &Request, ino: u64, mask: i32, reply: fuser::ReplyEmpty) {
         debug!("access: ino={}, mask={}", ino, mask);
 
