@@ -12,4 +12,6 @@ RUN apt-get update && apt-get install -y \
     python3-venv \
     && pip3 install --no-cache-dir --break-system-packages pre-commit \
     && rm -rf /var/lib/apt/lists/* \
-    && echo "user_allow_other" >> /etc/fuse.conf
+    && echo "user_allow_other" >> /etc/fuse.conf \
+    && echo "set nocompatible" >> /home/vscode/.vimrc \
+    && chown vscode:vscode /home/vscode/.vimrc

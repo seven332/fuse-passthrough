@@ -28,6 +28,5 @@
     "--device=/dev/fuse",
     "--security-opt=apparmor:unconfined"
   ],
-  "postCreateCommand": "cargo build",
   "remoteUser": "vscode"
 }
