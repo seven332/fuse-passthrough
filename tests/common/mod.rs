@@ -52,7 +52,7 @@ impl MountGuard {
     pub fn new(source: &PathBuf, mountpoint: &PathBuf) -> Self {
         // Get the binary path
         let binary = env!("CARGO_BIN_EXE_fuse-passthrough");
-        
+
         let child = Command::new(binary)
             .arg("-s")
             .arg(source)
@@ -65,12 +65,12 @@ impl MountGuard {
             mountpoint: mountpoint.clone(),
             child: Some(child),
         };
-        
+
         // Wait for mount to be ready
         if !guard.wait_for_mount() {
             panic!("Failed to mount filesystem at {:?}", mountpoint);
         }
-        
+
         guard
     }
 
@@ -78,7 +78,7 @@ impl MountGuard {
         let start = Instant::now();
         // Give the process a moment to start
         thread::sleep(Duration::from_millis(100));
-        
+
         while start.elapsed() < MOUNT_TIMEOUT {
             // Check if we can list the directory - this means FUSE is responding
             if let Ok(entries) = self.mountpoint.read_dir() {
@@ -112,9 +112,9 @@ pub fn setup_test_dirs() -> (PathBuf, PathBuf, tempfile::TempDir) {
     let temp_dir = tempfile::tempdir().expect("Failed to create temp dir");
     let source = temp_dir.path().join("source");
     let mountpoint = temp_dir.path().join("mount");
-    
+
     fs::create_dir_all(&source).expect("Failed to create source dir");
     fs::create_dir_all(&mountpoint).expect("Failed to create mountpoint dir");
-    
+
     (source, mountpoint, temp_dir)
 }

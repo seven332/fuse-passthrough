@@ -104,12 +104,8 @@ impl PassthroughFS {
             FileType::RegularFile
         };
 
-        let atime = metadata
-            .accessed()
-            .unwrap_or(UNIX_EPOCH);
-        let mtime = metadata
-            .modified()
-            .unwrap_or(UNIX_EPOCH);
+        let atime = metadata.accessed().unwrap_or(UNIX_EPOCH);
+        let mtime = metadata.modified().unwrap_or(UNIX_EPOCH);
         let ctime = SystemTime::UNIX_EPOCH + Duration::from_secs(metadata.ctime() as u64);
 
         FileAttr {
@@ -258,7 +254,10 @@ impl Filesystem for PassthroughFS {
         _lock_owner: Option<u64>,
         reply: ReplyData,
     ) {
-        debug!("read: ino={}, fh={}, offset={}, size={}", ino, fh, offset, size);
+        debug!(
+            "read: ino={}, fh={}, offset={}, size={}",
+            ino, fh, offset, size
+        );
 
         let mut open_files = self.open_files.lock().unwrap();
         if let Some(file) = open_files.get_mut(&fh) {
@@ -290,7 +289,13 @@ impl Filesystem for PassthroughFS {
         _lock_owner: Option<u64>,
         reply: ReplyWrite,
     ) {
-        debug!("write: ino={}, fh={}, offset={}, size={}", ino, fh, offset, data.len());
+        debug!(
+            "write: ino={}, fh={}, offset={}, size={}",
+            ino,
+            fh,
+            offset,
+            data.len()
+        );
 
         let mut open_files = self.open_files.lock().unwrap();
         if let Some(file) = open_files.get_mut(&fh) {
@@ -346,7 +351,7 @@ impl Filesystem for PassthroughFS {
             let name = entry.file_name().to_string_lossy().to_string();
             let relative_path = path.join(&name);
             let child_inode = self.get_or_create_inode(&relative_path);
-            
+
             let file_type = if let Ok(metadata) = entry.metadata() {
                 if metadata.is_dir() {
                     FileType::Directory
@@ -626,7 +631,10 @@ impl Filesystem for PassthroughFS {
                     let mut path_to_inode = self.path_to_inode.lock().unwrap();
                     if let Some(inode) = path_to_inode.remove(&old_relative) {
                         path_to_inode.insert(new_relative.clone(), inode);
-                        self.inode_to_path.lock().unwrap().insert(inode, new_relative);
+                        self.inode_to_path
+                            .lock()
+                            .unwrap()
+                            .insert(inode, new_relative);
                     }
                 }
                 reply.ok();
@@ -688,7 +696,10 @@ impl Filesystem for PassthroughFS {
                     let mut path_to_inode = self.path_to_inode.lock().unwrap();
                     if let Some(inode) = path_to_inode.remove(&old_relative) {
                         path_to_inode.insert(new_relative.clone(), inode);
-                        self.inode_to_path.lock().unwrap().insert(inode, new_relative);
+                        self.inode_to_path
+                            .lock()
+                            .unwrap()
+                            .insert(inode, new_relative);
                     }
                 }
                 reply.ok();
@@ -751,7 +762,10 @@ impl Filesystem for PassthroughFS {
         target: &Path,
         reply: ReplyEntry,
     ) {
-        debug!("symlink: parent={}, name={:?}, target={:?}", parent, link_name, target);
+        debug!(
+            "symlink: parent={}, name={:?}, target={:?}",
+            parent, link_name, target
+        );
 
         let parent_path = match self.get_path(parent) {
             Some(p) => p,
@@ -825,18 +839,28 @@ fn main() {
 
     // Verify source directory exists
     if !source.exists() || !source.is_dir() {
-        eprintln!("Error: source directory '{}' does not exist or is not a directory", args.source);
+        eprintln!(
+            "Error: source directory '{}' does not exist or is not a directory",
+            args.source
+        );
         std::process::exit(1);
     }
 
     // Verify mountpoint exists
     if !mountpoint.exists() || !mountpoint.is_dir() {
-        eprintln!("Error: mountpoint '{}' does not exist or is not a directory", args.mountpoint);
+        eprintln!(
+            "Error: mountpoint '{}' does not exist or is not a directory",
+            args.mountpoint
+        );
         std::process::exit(1);
     }
 
-    let source = source.canonicalize().expect("Failed to get absolute path for source directory");
-    let mountpoint = mountpoint.canonicalize().expect("Failed to get absolute path for mountpoint");
+    let source = source
+        .canonicalize()
+        .expect("Failed to get absolute path for source directory");
+    let mountpoint = mountpoint
+        .canonicalize()
+        .expect("Failed to get absolute path for mountpoint");
 
     info!("Mounting {} to {}", source.display(), mountpoint.display());
 
@@ -888,9 +912,7 @@ fn main() {
     drop(session);
 
     // Ensure unmount completes
-    let _ = std::process::Command::new("umount")
-        .arg(&mp)
-        .output();
+    let _ = std::process::Command::new("umount").arg(&mp).output();
 
     println!("Filesystem unmounted, exiting");
 }
